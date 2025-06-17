@@ -2,27 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Indirect Wizard by Sebi</title>
+  <title>InDirectWizard</title>
+  <link rel="icon" type="image/png" href="icon.png" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.css" rel="stylesheet" />
-  <style>
-    * { box-sizing: border-box; }
+</head>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rouge+Script&display=swap');
+* { box-sizing: border-box; }
     body {
-      background: url(back.svg);
-      background-position: center;
-      background-size: cover;
-      background-repeat: no-repeat;
+      background: #eee;
       font-family: "Raleway", sans-serif !important;
-      font-optical-sizing: auto;
       margin: 0;
       padding: 0;
       width: 100vw;
       height: 100vh;
+      overflow: hidden;
     }
+label {
+   cursor: pointer;
+   color: white;
+  background: #333;
+  padding: 30px 70px;
+  margin: 8px;
+  font-weight: 700;
+  box-shadow: orange 10px 10px;
+  border-radius: 5px;
+  transition: .3s;
+  position: relative;
+  top: 0px;
+  left: 0px;
+}
+label img {
+  width: 24px;
+  position: relative;
+  top: 6px;
+  left: -9px;
+}
+label:hover {
+  box-shadow: teal 5px 5px;
+  top: 5px;
+  left: 5px;
+}
+
+#add-file {
+   opacity: 0;
+   position: absolute;
+   z-index: -1;
+}
     table { border-collapse: collapse;}
     td, th { border: 1px solid #333; padding: 6px 12px; vertical-align: middle;text-align: center;min-width: 100px;font-family: "Inter", sans-serif;font-size: 13px;}
     th { background: #333;color: white;}
@@ -31,20 +61,29 @@
     #loading {
       display: none;
       position: fixed;
-      z-index: 9998;
+      z-index: 999999;
       left: 0; top: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.78);
       text-align: center;
       justify-content: center;
       align-items: center;
+      font-size: 32px;
+      color: #777;
+      font-family: Raleway, sans-serif;
+      font-weight: 600
     }
     #loading .spinner {
-      border: 6px solid #aaa;
-      border-top: 6px solid #fff;
+      border: 10px solid rgba(0,0,0,0.3);
+      border-top: 10px solid orange;
       border-radius: 50%;
-      width: 42px;
-      height: 42px;
+      width: 62px;
+      height: 62px;
       animation: spin 1s linear infinite;
       display: inline-block;
+      position:absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
     }
     @keyframes spin {
       0% { transform:rotate(0);}
@@ -60,28 +99,89 @@
       }
       html, body { background: none !important; }
       #result table { margin: auto; }
+      @page {
+        size: A4;
+        margin: 20mm;
+        margin-header: 0;
+        margin-footer: 0;
+      }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     }
-  </style>
-</head>
-<body align="center">
-  <div id="app-content" style="position: absolute;top: 48%;left: 50%;transform: translate(-50%, -50%);">
-    <span style="font-size: 68px;color: #fff;font-weight:100">Indirect<strong style="font-size: 82px;font-weight:700">Wizard</strong></span><br><br><br><br>
-    <div class="flex items-center justify-center w-full" style="width: 120%;margin-left: -9%;">
-      <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
-        <div class="flex flex-col items-center justify-center pt-5 pb-6">
-          <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-          </svg>
-          <p class="mb-2 text-sm text-gray-500 dark:text-gray-400" style="font-family: 'Raleway', sans-serif !important;font-weight: 400"><span class="font-semibold" style="font-family: 'Raleway', sans-serif !important;font-weight: 700">Klikni na pole</span> pre nahranie súboru</p>
-        </div>
-        <input id="dropzone-file" type="file" class="hidden" />
-      </label>
-    </div>
+#app-content {
+  width: 100vw;
+  height: 100vh;
+  padding: 10vw
+}
+.design {
+  width: 600px;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  filter: drop-shadow(0px 0px 16px #666);
+  border-radius: 5px;
+}
+.right {
+  bottom: -40px;
+  right: 80px;
+  transform: rotate(8deg);
+  z-index: 2999;
+  transition: .3s;
+}
+.left {
+  bottom: -20px;
+  right: 400px;
+  transform: rotate(1deg);
+  transition: .3s;
+  z-index: 1999;
+}
+.middle {
+  width: 200px;
+      bottom: 150px;
+      right: 600px;
+      z-index: 9999;
+      transform: rotate(60deg);
+      filter: none;
+      transition: -3s;
+      filter: drop-shadow(0px 0px 6px #333);
+      display: none;
+}
+.right:hover {
+  transform: rotate(10deg);
+}
+.left:hover {
+  transform: rotate(3deg);
+}
+#appka,
+#img1,
+#img2,
+#img3,
+#app-content {
+   opacity: 0;
+   transition: 1s;
+}
+#img1,
+#img2,
+#img3 {
+  bottom: -600px;
+}
+#app-content {
+  position: relative;
+  top: -400px
+}
+</style>
+<body id="appka">
+  <img id="img1" class="design right" src="01.png" />
+  <img id="img2" class="design left" src="02.png" />
+  <img id="img3" class="design middle" src="arrow.png" />
+  <div id="app-content" style="">
+    <span style="font-size: 100px;color: #333;font-weight: 900">InDirect</span><span style="font-size:80px;position:relative;left:-110px;top:30px;font-family: 'Rouge Script', cursive;color:orange;font-weight: 500">Wizard</span><br><br><br><br><br><br><label for="add-file"><img src="https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png" />VYBRAŤ SÚBOR</label>
+        <input id="add-file" type="file" accept=".xls,.xlsx,.xlsm" />
   </div>
   <div id="result"></div>
   <div id="loading">
     <span class="spinner"></span>
   </div>
+
   <script>
     function barcodeSVG(text, id) {
       return `<svg id="${id}" class="barcode"></svg>`;
@@ -90,120 +190,142 @@
       return new Promise(res => setTimeout(res, ms));
     }
 
-    document.getElementById('dropzone-file').addEventListener('change', async function(e){
-		  document.getElementById('app-content').style.filter = "blur(8px)";
+    document.getElementById('add-file').addEventListener('change', async function(e){
       const file = e.target.files[0];
       if (!file) return;
 
-      // Show loading indicator
       document.getElementById('loading').style.display = "flex";
-
       const reader = new FileReader();
-
       reader.onload = async function(event) {
         const data = new Uint8Array(event.target.result);
         const workbook = XLSX.read(data, {type: 'array'});
-        const firstSheetName = workbook.SheetNames[0];
-        const ws = workbook.Sheets[firstSheetName];
+        // Always use "Data" sheet
+        const ws = workbook.Sheets["Data"];
+        if (!ws) {
+          document.getElementById('loading').style.display = "none";
+          alert('Hárok "Data" nebol nádený v súbore...');
+          return;
+        }
         let rows = XLSX.utils.sheet_to_json(ws, {header:1});
         if (!rows.length) {
           document.getElementById('loading').style.display = "none";
-          alert("No data found.");
+          alert("Prázdne dáta...");
           return;
         }
+        // Now includes P=15
+        const colIndexes = { F: 5, H: 7, P: 15, R: 17, AI: 34 };
 
-        const headers = rows[0];
-        const colIndexes = { D: 3, E: 4, H: 7, J: 9, N: 13 };
-
+        // Format F as text and add 00 if exactly 6 digits
         for (let i=1; i<rows.length; ++i) {
           let row = rows[i];
-          let d = row[colIndexes.D];
-          if (d !== undefined && d !== null) {
-            let dStr = String(d).trim();
-            if (/^\d{6}$/.test(dStr)) {
-              dStr = '00' + dStr;
+          let f = row[colIndexes.F];
+          if (f !== undefined && f !== null) {
+            let fStr = String(f).trim();
+            if (/^\d{6}$/.test(fStr)) {
+              fStr = '00' + fStr;
             }
-            row[colIndexes.D] = dStr;
+            row[colIndexes.F] = fStr;
           }
         }
 
-        let filteredRows = [headers];
+        // Filter: AI contains "indir", F !== "88888888"
+        let filteredRows = [rows[0]];
         for (let i=1; i<rows.length; ++i) {
           let row = rows[i];
-          if (!row[colIndexes.N]) continue;
-          if ((row[colIndexes.N]+'').toLowerCase() !== 'indirect') continue;
-          if ((row[colIndexes.D]+'') === "88888888") continue;
+          if (!row[colIndexes.AI]) continue;
+          if (((row[colIndexes.AI]+'').toLowerCase().indexOf('indir') === -1)) continue;
+          if ((row[colIndexes.F]+'') === "88888888") continue;
           filteredRows.push(row);
         }
 
+        // Build display rows: Barcode F | F | H | P | R | Barcode R
         const displayRows = [];
-        const headerRow = ['Barcode D', headers[colIndexes.D], headers[colIndexes.E], headers[colIndexes.H], headers[colIndexes.J], 'Barcode J'];
+        const headerRow = [
+          'Barcode F', rows[0][colIndexes.F], rows[0][colIndexes.H], rows[0][colIndexes.P], rows[0][colIndexes.R], 'Barcode R'
+        ];
         displayRows.push(headerRow);
 
         for (let i=1; i<filteredRows.length; ++i) {
           const row = filteredRows[i];
           displayRows.push([
-            row[colIndexes.D], row[colIndexes.D],
-            row[colIndexes.E], row[colIndexes.H], row[colIndexes.J],
-            row[colIndexes.J]
-          ]);
-        }
+            row[colIndexes.F],
+            row[colIndexes.F],
+              row[colIndexes.H],
+row[colIndexes.P],
+row[colIndexes.R],
+row[colIndexes.R]
+]);
+}
 
-        // Render directly in #result (still hidden)
-        let html = `<table><thead><tr style="background-color: #333;color:white;">`;
-        ['', 'Artikel', 'Lokácia', 'Kapacita', '', ''].forEach(h => html += `<th style="background-color: #333;color:white;">${h}</th>`);
-        html += `</tr></thead><tbody>`;
-        for (let i=1; i<displayRows.length; ++i) {
-          html += '<tr>';
-          const dBarcodeId = `d-barcode-${i}`;
-          const jBarcodeId = `j-barcode-${i}`;
-          html += `<td>${barcodeSVG(displayRows[i][0], dBarcodeId)}</td>`;
-          html += `<td>${displayRows[i][1] !== undefined ? displayRows[i][1] : ''}</td>`;
-          html += `<td>${displayRows[i][2] !== undefined ? displayRows[i][2] : ''}</td>`;
-          html += `<td>${displayRows[i][3] !== undefined ? displayRows[i][3] : ''}</td>`;
-          html += `<td>${displayRows[i][4] !== undefined ? displayRows[i][4] : ''}</td>`;
-          html += `<td>${barcodeSVG(displayRows[i][5], jBarcodeId)}</td>`;
-          html += '</tr>';
-        }
-        html += `</tbody></table>`;
+// Build the HTML table (headers: Barcode F | F | H | P | R | Barcode R)
+let html = `<table><thead><tr style="background-color: #333;color:white;">`;
+['', 'Article', 'Location', 'Before', 'After', ''].forEach(h => html += `<th style="background-color: #333;color:white;">${h}</th>`);
+html += `</tr></thead><tbody>`;
+for (let i=1; i<displayRows.length; ++i) {
+html += '<tr>';
+const fBarcodeId = `f-barcode-${i}`;
+const rBarcodeId = `r-barcode-${i}`;
+html += `<td>${barcodeSVG(displayRows[i][0], fBarcodeId)}</td>`;
+html += `<td>${displayRows[i][1] !== undefined ? displayRows[i][1] : ''}</td>`;
+html += `<td>${displayRows[i][2] !== undefined ? displayRows[i][2] : ''}</td>`;
+html += `<td>${displayRows[i][3] !== undefined ? displayRows[i][3] : ''}</td>`;
+html += `<td>${displayRows[i][4] !== undefined ? displayRows[i][4] : ''}</td>`;
+html += `<td>${barcodeSVG(displayRows[i][5], rBarcodeId)}</td>`;
+html += '</tr>';
+}
+html += `</tbody></table>`;
 
-        // Place the HTML into the (still hidden) #result div
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = html;
+// Place HTML in result div (remains hidden except for @media print)
+const resultDiv = document.getElementById('result');
+resultDiv.innerHTML = html;
 
-        // Wait for the DOM to update
-        await sleep(500);
+// Wait for DOM update
+await sleep(20);
 
-        // Generate barcodes using JsBarcode
-        for (let i = 1; i < displayRows.length; ++i) {
-          const dVal = displayRows[i][0];
-          const jVal = displayRows[i][5];
-          if (dVal !== undefined && dVal !== "") {
-            JsBarcode(`#d-barcode-${i}`, String(dVal), { format: "CODE128", lineColor: "#222", height: 36, width: 1.8, displayValue: false });
-          }
-          if (jVal !== undefined && jVal !== "") {
-            JsBarcode(`#j-barcode-${i}`, String(jVal), { format: "CODE128", lineColor: "#222", height: 36, width: 1.8, displayValue: false });
-          }
-        }
+// Generate JsBarcode barcodes
+for (let i = 1; i < displayRows.length; ++i) {
+const fVal = displayRows[i][0];
+const rVal = displayRows[i][5];
+if (fVal !== undefined && fVal !== "") {
+JsBarcode(`#f-barcode-${i}`, String(fVal), { format: "CODE128", lineColor: "#222", height: 36, width: 1.8, displayValue: false });
+}
+if (rVal !== undefined && rVal !== "") {
+JsBarcode(`#r-barcode-${i}`, String(rVal), { format: "CODE128", lineColor: "#222", height: 36, width: 1.8, displayValue: false });
+}
+}
 
-        // Wait briefly to ensure barcodes have rendered
-        await sleep(500);
+// Wait briefly for barcode SVGs to render
+await sleep(200);
 
-        // Hide the loading spinner
-        document.getElementById('loading').style.display = "none";
+document.getElementById('loading').style.display = "none";
 
-        // Trigger the print dialog (result stays hidden until print due to CSS)
-        window.print();
+// Print the result (table is only visible for print)
+window.print();
 
-        // After print, reload the page to reset the wizard
-        window.onafterprint = function() {
-          window.location.reload();
-        };
-      };
+// After print, reload page to wizard
+window.onafterprint = function() {
+window.location.reload();
+};
+};
 
-      reader.readAsArrayBuffer(file);
-    });
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+reader.readAsArrayBuffer(file);
+});
+window.addEventListener('load', function () {
+  setTimeout(() => {
+    document.getElementById("appka").style.opacity = "1";
+    document.getElementById("app-content").style.opacity = "1";
+    document.getElementById("img1").style.opacity = "1";
+    document.getElementById("img2").style.opacity = "1";
+    document.getElementById("img3").style.opacity = "1";
+  }, 1000),
+    setTimeout(() => {
+      document.getElementById("app-content").style.top = "0";
+      document.getElementById("img1").style.bottom = "-40px";
+      document.getElementById("img2").style.bottom = "-20px";
+      document.getElementById("img3").style.bottom = "150px";
+    }, 1000)
+})
+</script>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 </body>
 </html>
