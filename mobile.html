@@ -113,8 +113,11 @@
       <div>
         <span class="field-label" style="display: none;">Barcode F (article):</span>
         <span id="article-barcode-svg"></span>
-        <span class="field-label" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;">Article number:</span>
-        <span class="field" id="article-number" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;"></span>
+        <span class="field-label" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;width:200px;text-align:left;">Article:</span>
+        <span class="field" id="article-number" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;width:100px;text-align:right;"></span>
+        <br>
+        <span class="field-label" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;width:200px;text-align:left;">Location:</span>
+        <span class="field" id="article-location" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;width:100px;text-align:right;"></span>
       </div>
       <br>
       <br>
@@ -160,6 +163,7 @@
       let row = mobileRows[curPage];
       document.getElementById('page-content').style.display = 'block';
       document.getElementById('article-number').innerText = row.article || "";
+      document.getElementById('article-location').innerText = row.location || "";
       document.getElementById('old-amount').innerText = row.before || "";
       document.getElementById('new-amount').innerText = row.after || "";
       renderBarcodes(row);
@@ -221,7 +225,7 @@
         if (!Array.isArray(mobileRows) || !mobileRows.length) throw 1;
 curPage = 0;
 showMobilePage();
-status.textContent = "Loaded " + mobileRows.length + " records from server.";
+status.innerHTML = "Loaded <strong>" + mobileRows.length + " records</strong> from server.";
 } catch (e) {
 status.textContent = "Failed to load from server! " + (e.message ? "(" + e.message + ")" : "");
 document.getElementById('page-content').style.display = 'none';
