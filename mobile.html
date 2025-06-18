@@ -11,6 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rouge+Script&display=swap');
@@ -60,7 +62,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 50px 5vw 14px 5vw;
       font-size: 16px;
-      min-height: 52vh;
+      min-height: 54vh;
       font-family: "Inter", Arial, sans-serif;
     }
     .field-label { color: #888;font-size:0.99em;}
@@ -113,6 +115,7 @@
         <span class="field-label" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;">Article number:</span>
         <span class="field" id="article-number" style="display: inline-block;font-family: 'Inter', Arial, sans-serif;"></span>
       </div>
+      <br>
       <br>
       <br>
       <div>
@@ -229,6 +232,10 @@ document.getElementById('paginator').style.display = 'none';
 window.addEventListener('DOMContentLoaded', function() {
 loadFromJsonBin();
 });
+setTimeout(() => {
+  window.scrollTo(0, 1);
+  console.log("scrolled");
+}, 1000);
 </script>
 </body>
 </html>
