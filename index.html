@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -292,6 +293,16 @@
       <br>
       <label for="add-file" id="label">
         <img src="https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png" />VYBRAŤ SÚBOR </label>
+
+        <label for="add-file-export" id="label-export">
+  <img src="https://img.icons8.com/ios11/512/FFFFFF/export-csv.png" />EXPORT PRE MH
+</label>
+<input id="add-file-export" type="file" accept=".xls,.xlsx,.xlsm" style="opacity:0;position:absolute;z-index:-1;">
+<div id="export-result" style="display:none;">
+  <h3>Export Data for iPhone App:</h3>
+  <textarea id="export-data-text" style="width:90%;height:160px;font-size:18px;"></textarea>
+  <button onclick="navigator.clipboard.writeText(document.getElementById('export-data-text').value)">Copy</button>
+</div>
         <span id="reloader" onclick="reloader();"><img src="https://www.freeiconspng.com/thumbs/refresh-icon/black-refresh-icon-png-9.png"><span>Začať odznova</span></span>
       <input id="add-file" type="file" accept=".xls,.xlsx,.xlsm" />
     </div>
@@ -509,6 +520,68 @@ html += `</tbody></table>`;
       function reloader() {
         window.location.reload();
       }
+      document.getElementById('add-file-export').addEventListener('change', async function(e) {
+  document.getElementById("label-export").innerHTML = "<img src='https://img.icons8.com/ios11/512/FFFFFF/export-csv.png' />SÚBOR VYBRANÝ";
+  const file = e.target.files[0];
+  if (!file) return;
+  let workbook, ws, data, rows, filteredRows, displayRows = [];
+  await runSteps([ // Same as your main pipeline
+      null, // wait
+      async () => {
+        const reader = new FileReader();
+        data = await new Promise((resolve, reject) => {
+          reader.onload = ev => resolve(new Uint8Array(ev.target.result));
+          reader.readAsArrayBuffer(file);
+        });
+      },
+      async () => { workBook = XLSX.read(data, { type: 'array'}); },
+      async () => { ws = workBook.Sheets["Data"]; if (!ws) throw alert('Sheet "Data" not found!'); },
+      async () => { rows = XLSX.utils.sheet_to_json(ws, {header:1}); if (!rows.length) throw alert("Empty file"); },
+      async () => { // format F as in original
+        const F = 5;
+        for (let i = 1; i < rows.length; ++i) {
+          let row = rows[i];
+          let f = row[F];
+          if (f !== undefined && f !== null) {
+            let fStr = String(f).trim();
+            if (/^\d{6}$/.test(fStr)) fStr = '00' + fStr;
+            row[F] = fStr;
+          }
+        }
+      },
+      async () => { // filter rows
+        const colIndexes = { F:5, H:7, P:15, R:17, AI:34 };
+        filteredRows = [rows[0]];
+        for (let i = 1; i < rows.length; ++i) {
+          let row = rows[i];
+          if (!row[colIndexes.AI]) continue;
+          if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
+          if ((row[colIndexes.F] + '') === "88888888") continue;
+          filteredRows.push(row);
+        }
+      },
+      async () => { // pack minimal objects
+        const colIndexes = {F:5,H:7,P:15,R:17,AI:34};
+        displayRows = [];
+        for (let i=1; i<filteredRows.length; ++i) {
+          const row = filteredRows[i];
+          displayRows.push({
+            barcodeF: row[colIndexes.F],
+            article: row[colIndexes.F],
+            location: row[colIndexes.H],
+            before: row[colIndexes.P],
+            after: row[colIndexes.R],
+            barcodeR: row[colIndexes.R]
+          });
+        }
+      }
+  ]);
+  // Output JSON (as plain or base64)
+  let json = JSON.stringify(displayRows);
+  // let encoded = btoa(unescape(encodeURIComponent(json))); // Use if you want base64
+  document.getElementById("export-result").style.display = "block";
+  document.getElementById("export-data-text").value = json; // or encoded
+});
     </script>
     <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
   </body>

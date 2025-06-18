@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>IndirWizard Desktop Export with QR</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" type="image/png" href="icon.png" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+  <style>
+    body { font-family:Arial,sans-serif; background:#f5f5f5; margin:0; padding:0; }
+    #main { max-width:580px; margin:32px auto; background:white; border-radius:10px; box-shadow:0 4px 14px #0002; padding:20px 18px 30px 18px;}
+    h2 { font-size:1.5em; margin-bottom:8px; }
+    input[type=file] { margin-bottom:10px; display:block; }
+    textarea { width:100%; height:90px; font-size:1.05em; padding:7px; margin:7px 0 15px 0; border-radius:6px; border:1px solid #bbb; background:#faf9f8;}
+    #export-controls { margin-bottom:20px; }
+    #qrcode { margin:10px auto; display:block; width:250px; height:250px; }
+    button { font-size:1.01em; background:#212c40; color:white; padding:8px 18px; border:none; border-radius:5px; cursor:pointer; margin-bottom:8px;}
+    .info { font-size:0.98em; color:#555; }
+  </style>
+</head>
+<body>
+<div id="main">
+  <h2>InDirect Export – QR, Compression</h2>
+  <label for="add-file">Select Excel File:<br>
+    <input id="add-file" type="file" accept=".xls,.xlsx,.xlsm" />
+  </label>
+  <div id="export-controls" style="display:none;">
+    <label>Short Export String (copy or scan QR below):<br>
+      <textarea id="export-data-text" readonly></textarea>
+    </label>
+    <button onclick="copyStr()">Copy to Clipboard</button>
+    <br>
+    <span class="info">Scan the QR with your mobile app, or paste the above string into its textbox.<br>
+    String and QR are compressed+Base64 and portable.</span>
+    <canvas id="qrcode"></canvas>
+  </div>
+  <div id="status-panel" style="margin-top:12px; font-size:1em; color:darkred;"></div>
+</div>
+<script>
+// Helper: process the file, build export array as before.
+document.getElementById('add-file').addEventListener('change', async function(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  let status = document.getElementById('status-panel');
+  status.innerText = "Reading file...";
+  try {
+    // Read file as ArrayBuffer
+    const reader = new FileReader();
+    let data = await new Promise((resolve, reject) => {
+      reader.onload = ev => resolve(new Uint8Array(ev.target.result));
+      reader.onerror = ev => reject(ev);
+      reader.readAsArrayBuffer(file);
+    });
+
+    // XLSX parsing
+    let workbook = XLSX.read(data, { type:'array' });
+    let ws = workbook.Sheets["Data"];
+    if (!ws) throw 'Sheet "Data" not found';
+    let rows = XLSX.utils.sheet_to_json(ws, { header:1 });
+    if (!rows.length) throw "No rows in file";
+
+    // Format column F
+    const F = 5;
+    for (let i = 1; i < rows.length; ++i) {
+      let row = rows[i];
+      let f = row[F];
+      if (f !== undefined && f !== null) {
+        let fStr = String(f).trim();
+        if (/^\d{6}$/.test(fStr)) fStr = '00' + fStr;
+        row[F] = fStr;
+      }
+    }
+
+    // Filter
+    const colIndexes = { F:5, H:7, P:15, R:17, AI:34 };
+    let filteredRows = [];
+    for (let i = 1; i < rows.length; ++i) {
+      let row = rows[i];
+      if (!row[colIndexes.AI]) continue;
+      if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
+      if ((row[colIndexes.F] + '') === "88888888") continue;
+      filteredRows.push(row);
+    }
+
+    // Build out array of objects for export
+    let exportRows = filteredRows.map(function(row){
+      return {
+        barcodeF: row[colIndexes.F],
+        article:  row[colIndexes.F],
+        location: row[colIndexes.H],
+        before:   row[colIndexes.P],
+        after:    row[colIndexes.R],
+        barcodeR: row[colIndexes.R]
+      }
+    });
+
+    // Compression (lz-string)
+    const str = JSON.stringify(exportRows);
+    const compressed = LZString.compressToBase64(str);
+
+    // Output
+    document.getElementById('export-controls').style.display = 'block';
+    document.getElementById('export-data-text').value = compressed;
+
+    // QR code (qrious) - canvas (auto handles long payload)
+    let qr = new QRious({
+      element: document.getElementById('qrcode'),
+      value: compressed,
+      size: 250,
+      padding: 0,
+      level: 'M'
+    });
+
+    status.innerHTML = '<span style="color:green;">Success! Data ready to transfer.</span><br>'
+      + 'String length: ' + compressed.length + ', Rows exported: ' + exportRows.length;
+
+  } catch (error) {
+    document.getElementById('export-controls').style.display = 'none';
+    document.getElementById('qrcode').getContext('2d').clearRect(0,0,250,250);
+    document.getElementById('export-data-text').value = '';
+    status.innerText = "Error: " + (error && error.message ? error.message : error);
+  }
+});
+
+function copyStr() {
+  let t = document.getElementById('export-data-text');
+  t.select(); t.setSelectionRange(0,99999);
+  document.execCommand('copy');
+}
+
+</script>
+</body>
+</html>

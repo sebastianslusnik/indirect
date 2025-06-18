@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mobile EVID Data Viewer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+  <style>
+    body {
+      font-family: "Inter", Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      color: #222;
+    }
+    #mobileApp {
+      max-width: 450px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+    h2 {
+      font-size: 1.7em;
+      margin-bottom: 10px;
+      margin-top: 0.3em;
+    }
+    textarea, input[type="file"] {
+      width: 100%;
+      margin-bottom: 10px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+      padding: 7px;
+    }
+    button {
+      font-size: 1em;
+      background: #212c40;
+      color: white;
+      padding: 9px 18px;
+      border: none;
+      border-radius: 5px;
+      margin-bottom: 13px;
+      margin-right: 6px;
+      cursor: pointer;
+    }
+    #page-content {
+      display: none;
+      background: white;
+      border-radius: 8px;
+      margin-top: 7px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      padding: 18px 5vw 14px 5vw;
+      font-size: 1.18em;
+      min-height: 300px;
+    }
+    .field-label { color: #888;font-size:0.99em;}
+    .field { display: block; font-size: 1.15em; margin-bottom: 9px;}
+    svg.barcode { margin: 0 auto 0.2em auto; display: block; width: 135px; height: 40px; }
+    #paginator { margin: 14px auto 0 auto; font-size: 2em; text-align: center;}
+    #paginator > span {
+      display: inline-block;
+      background: #eee;
+      border-radius: 8px;
+      width: 1.7em;
+      cursor: pointer;
+      margin: 0 12px;
+    }
+    #paginator > span:active {
+      background: #b8e0e7;
+    }
+    #page-indicator {
+      font-size: 1.10em;
+      color: #222;
+      position: relative;
+      top:-6px;
+    }
+    #qr-scanner-ui {
+      margin-bottom: 15px;
+      display: none;
+    }
+    #qr-canvas {
+      display: block;
+      margin: 0 auto 6px auto;
+      border-radius: 7px;
+      box-shadow: 0 2px 6px #0002;
+    }
+  </style>
+</head>
+<body>
+  <div id="mobileApp">
+    <h2>MH Evidence Import (QR & Text)</h2>
+    <input id="import-data" type="file" accept=".json,.txt" />
+    <textarea id="import-text" rows="4" placeholder="Paste or import export string here...."></textarea>
+    <button onclick="loadMobileData()">Load &gt;</button>
+    <button onclick="showQRScanner()">Scan QR 📷</button>
+    <!-- QR scanner UI -->
+    <div id="qr-scanner-ui">
+      <canvas id="qr-canvas" width="320" height="240"></canvas>
+      <button onclick="stopQRScan()">Cancel</button>
+      <div id="qr-scan-tip" style="font-size:0.97em;color:#444;">Align the QR in the box…</div>
+    </div>
+    <div id="page-content">
+      <div>
+        <span class="field-label">Barcode F (article):</span>
+        <span id="article-barcode-svg"></span>
+        <span class="field-label">Article number:</span>
+        <span class="field" id="article-number"></span>
+      </div>
+      <div>
+        <span class="field-label">Before amount:</span>
+        <span class="field" id="old-amount"></span>
+      </div>
+      <div>
+        <span class="field-label">After amount:</span>
+        <span class="field" id="new-amount"></span>
+      </div>
+      <div>
+        <span class="field-label">Barcode R (amount after):</span>
+        <span id="amount-barcode-svg"></span>
+      </div>
+    </div>
+    <div id="paginator" style="display:none;">
+      <span id="prev-page">&lt;</span>
+      <span id="page-indicator">1/1</span>
+      <span id="next-page">&gt;</span>
+    </div>
+  </div>
+  <script>
+    let mobileRows = [];
+    let curPage = 0;
+
+    // Try decompress lz-string from textarea or QR
+    function parseExportStr(txt) {
+      txt = txt.trim();
+      // If looks like JSON, treat as JSON; else decompress
+      if (txt[0] === "[") return JSON.parse(txt);
+      // Else try lz-string decompression
+      let json = LZString.decompressFromBase64(txt);
+      if (!json || json[0] !== "[") throw new Error("Not valid compressed export string");
+      return JSON.parse(json);
+    }
+
+    function renderBarcodes(row) {
+      // Article barcode
+      let fhtml = '<svg id="barcodeF" class="barcode"></svg>';
+      document.getElementById('article-barcode-svg').innerHTML = fhtml;
+      JsBarcode("#barcodeF", (row.barcodeF||""), {format:"CODE128", lineColor:"#222", height:36, width:1.8, displayValue:false});
+      // Amount (R) barcode
+      let rhtml = '<svg id="barcodeR" class="barcode"></svg>';
+      document.getElementById('amount-barcode-svg').innerHTML = rhtml;
+      JsBarcode("#barcodeR", (row.barcodeR||""), {format:"CODE128", lineColor:"#222", height:36, width:1.8, displayValue:false});
+    }
+
+    function showMobilePage() {
+      if (!mobileRows.length) return;
+      let row = mobileRows[curPage];
+      // Text data
+      document.getElementById('page-content').style.display = 'block';
+      document.getElementById('article-number').innerText = row.article || "";
+      document.getElementById('old-amount').innerText = row.before || "";
+      document.getElementById('new-amount').innerText = row.after || "";
+      // Render barcodes
+      renderBarcodes(row);
+      // Paging
+      document.getElementById('paginator').style.display = 'block';
+      document.getElementById('prev-page').style.opacity = '1';
+      document.getElementById('next-page').style.opacity = '1';
+      document.getElementById('page-indicator').innerText = (curPage+1) + " / " + mobileRows.length;
+    }
+
+    function loadMobileData() {
+      let txt = document.getElementById('import-text').value.trim();
+      try {
+        mobileRows = parseExportStr(txt);
+        if (!Array.isArray(mobileRows) || !mobileRows.length) throw 1;
+        curPage = 0;
+        showMobilePage();
+      } catch (e) {
+        alert("Invalid data! Paste/copy or scan a string from the export page.");
+        document.getElementById('page-content').style.display = 'none';
+        document.getElementById('paginator').style.display = 'none';
+        return;
+      }
+    }
+
+    // File upload: load file to textarea then autoload
+    document.getElementById('import-data').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        document.getElementById('import-text').value = ev.target.result;
+        loadMobileData();
+      };
+      reader.readAsText(file);
+    });
+
+// Circular paging buttons
+document.getElementById('prev-page').onclick = function() {
+if (mobileRows.length === 0) return;
+curPage = curPage > 0 ? curPage - 1 : mobileRows.length - 1;
+showMobilePage();
+};
+document.getElementById('next-page').onclick = function() {
+if (mobileRows.length === 0) return;
+curPage = curPage < mobileRows.length - 1 ? curPage + 1 : 0;
+showMobilePage();
+};
+
+// QR SCANNER SECTION
+let qrScanActive = false;
+let videoStream = null;
+let scanAnimationId = null;
+
+function showQRScanner() {
+document.getElementById('qr-scanner-ui').style.display = 'block';
+const canvas = document.getElementById('qr-canvas');
+const context = canvas.getContext('2d');
+// Reset
+context.clearRect(0, 0, canvas.width, canvas.height);
+
+// Use getUserMedia to get video from camera
+navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+  .then(function(stream) {
+    qrScanActive = true;
+    videoStream = stream;
+    const video = document.createElement('video');
+    video.setAttribute('playsinline', 'true'); // iOS safari
+    video.srcObject = stream;
+    video.play();
+
+    function tick() {
+      if (!qrScanActive) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.height = video.videoHeight * canvas.width / video.videoWidth;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) {
+          // Found a QR code
+          stopQRScan();
+          document.getElementById('import-text').value = code.data;
+          loadMobileData();
+          return;
+        }
+      }
+      scanAnimationId = requestAnimationFrame(tick);
+    }
+    scanAnimationId = requestAnimationFrame(tick);
+  })
+  .catch(function(err) {
+    alert('Camera/QR error: ' + err);
+    stopQRScan();
+  });
+}
+
+function stopQRScan() {
+qrScanActive = false;
+document.getElementById('qr-scanner-ui').style.display = 'none';
+if (scanAnimationId) cancelAnimationFrame(scanAnimationId);
+if (videoStream) {
+  videoStream.getTracks().forEach(track => track.stop());
+  videoStream = null;
+}
+}
+</script>
+</body>
+</html>
