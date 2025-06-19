@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -203,6 +201,8 @@
       right: 0;
       filter: drop-shadow(0px 0px 16px #666);
       border-radius: 5px;
+      user-select: none;
+      /* prevent selection on drag */
     }
 
     .right {
@@ -210,36 +210,66 @@
       right: 80px;
       transform: rotate(8deg);
       z-index: 2999;
-      transition: .3s;
     }
 
     .left {
       bottom: -20px;
       right: 400px;
       transform: rotate(1deg);
-      transition: .3s;
       z-index: 1999;
     }
 
     .middle {
       width: 200px;
       bottom: 150px;
-      right: 600px;
-      z-index: 9999;
-      transform: rotate(60deg);
+      right: 550px;
+      z-index: 9;
+      transform: rotate(-2deg);
+      border-radius: 8px;
       filter: none;
-      transition: -3s;
-      filter: drop-shadow(0px 0px 6px #333);
-      display: none;
+    }
+    .wow {
+      width: 100px;
+      bottom: 270px;
+      right: 520px;
+      z-index: 10;
+      transform: rotate(10deg);
+      filter: none;
+      border-radius: 0px;
+    }
+    .wow2 {
+      width: 100px;
+      bottom: 120px;
+      right: 705px;
+      z-index: 11;
+      transform: rotate(-9deg);
+      filter: none;
+      border-radius: 0px;
     }
 
     .right:hover {
+  animation-name: example1;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
       transform: rotate(10deg);
     }
 
     .left:hover {
+  animation-name: example2;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
       transform: rotate(3deg);
     }
+@keyframes example1 {
+  0% {transform: rotate(8deg);}
+  50% {transform: rotate(10deg);}
+  100% {transform: rotate(8deg);}
+}
+@keyframes example2 {
+0% {transform: rotate(1deg);}
+50% {transform: rotate(3deg);}
+100% {transform: rotate(1deg);}
+}
 
     #appka,
     #img1,
@@ -247,7 +277,6 @@
     #img3,
     #app-content {
       opacity: 0;
-      transition: 1s;
     }
 
     #img1,
@@ -302,24 +331,32 @@
       font-size: 12px;
       padding: 22px 28px 18px 28px;
     }
+    /* Prevent draggable img from letting page select text */
+    img.design.dragging {
+      cursor: grabbing !important;
+      z-index: 99999 !important;
+      /* Highest while dragging */
+      opacity: .93;
+      /* Visual feedback */
+    }
+    img.design {
+      cursor: grab;
+    }
   </style>
   <body id="appka">
     <img id="img1" class="design right" src="01.png" />
     <img id="img2" class="design left" src="02.png" />
-    <img id="img3" class="design middle" src="arrow.png" />
+    <img id="img3" class="design middle" src="max.jpg" />
+    <img id="img4" class="design wow" src="https://i.pinimg.com/originals/21/76/18/21761828b4e67dc7aeec89ebf22bf3cf.gif" />
+    <img id="img4" class="design wow2" src="https://media.tenor.com/10F_uYQr-q8AAAAj/hitopotato-wow.gif" />
     <div id="app-content" style="">
       <span style="font-size: 100px;color: #333;font-weight: 900">InDirect</span>
-      <span style="font-size:80px;position:relative;left:-110px;top:30px;font-family: 'Rouge Script', cursive;color:orange;font-weight: 500">Wizard</span>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <br>
-      <label for="add-file" id="label">
-        <img src="https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png" />VYBRAŤ SÚBOR </label>
-
-        <label for="add-file-export" id="label-export">
+<span style="font-size:80px;position:relative;left:-110px;top:30px;font-family: 'Rouge Script', cursive;color:orange;font-weight: 500">Wizard</span>
+<br><br><br><br><br><br>
+<label for="add-file" id="label">
+  <img src="https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png" />VYBRAŤ SÚBOR
+</label>
+<label for="add-file-export" id="label-export">
   <img src="https://img.icons8.com/ios11/512/222222/export-csv.png" />POSLAŤ NA TELEFÓN
 </label>
 <input id="add-file-export" type="file" accept=".xls,.xlsx,.xlsm" style="opacity:0;position:absolute;z-index:-1;">
@@ -327,147 +364,166 @@
   <textarea id="export-data-text" style="width:90%;height:160px;font-size:18px;"></textarea>
   <button style="display: none;" onclick="navigator.clipboard.writeText(document.getElementById('export-data-text').value)">Copy</button>
 </div>
-        <span id="reloader" onclick="reloader();"><img src="https://www.freeiconspng.com/thumbs/refresh-icon/black-refresh-icon-png-9.png"><span>Začať odznova</span></span>
-      <input id="add-file" type="file" accept=".xls,.xlsx,.xlsm" />
-    </div>
-    <div id="result"></div>
-    <div id="status-panel" class="visible">
-      <ul id="status-log">
-        <li>Čakám na výber súboru…</li>
-      </ul>
-      <div id="status-progress-bg">
-        <div id="status-progress"></div>
-      </div>
-    </div>
-    <script>
-      function barcodeSVG(text, id) {
-        return `
-													<svg id="${id}" class="barcode"></svg>`;
-      }
+<span id="reloader" onclick="reloader();">
+  <img src="https://www.freeiconspng.com/thumbs/refresh-icon/black-refresh-icon-png-9.png"><span>Začať odznova</span>
+</span>
+<input id="add-file" type="file" accept=".xls,.xlsx,.xlsm" />
+</div>
+<div id="result"></div>
+<div id="status-panel" class="visible">
+<ul id="status-log">
+  <li>Čakám na výber súboru…</li>
+</ul>
+<div id="status-progress-bg">
+  <div id="status-progress"></div>
+</div>
+</div>
+<script>
+// --------- DRAGGABLE IMAGES LOGIC BEGIN ----------
+(function() {
+let draggedImg = null;
+let offsetX = 0, offsetY = 0;
+let startLeft = 0, startTop = 0;
 
-      function sleep(ms) {
-        return new Promise(res => setTimeout(res, ms));
-      }
-      // Helper for logging steps and progress
-      const steps = ["Čakanie na výber súboru...", "Súbor sa načítava...", "Kontrolujem obsah súboru...", "Vyhľadávam hárok \"Data\"...", "Spracovávam Excel dáta...", "Formátujem stĺpec F...", "Filtrujem riadky podľa stĺpca AI...", "Pripravujem tabuľku na tlač...", "Vytváram čiarové kódy...", "Dokončujem prípravu...", "Hotovo! Spúšťam tlač..."];
-      async function runSteps(stepFns) {
-        const statusPanel = document.getElementById('status-panel');
-        const statusLog = document.getElementById('status-log');
-        const statusProgress = document.getElementById('status-progress');
-        statusLog.innerHTML = "";
-        statusPanel.classList.add("visible");
-        let progress = 0;
-        for (let i = 0; i < steps.length; i++) {
-          // Display step
-          statusLog.innerHTML = `
-													<li>${steps[i]}</li>`;
-          statusLog.scrollTop = statusLog.scrollHeight;
-          // Animate progress bar
-          progress = ((i + 1) / steps.length) * 100;
-          statusProgress.style.width = progress + "%";
-          // Actually run the function (if non-empty)
-          if (typeof stepFns[i] === "function") await stepFns[i]();
-          // Wait for a small delay before next step
-          await sleep(steps[i].indexOf("Hotovo") > -1 ? 100 : 200);
-        }
-        // Wait a little so user sees the completion
-        await sleep(600);
-        // Hide the status panel after a moment
-        statusPanel.classList.remove("visible");
-      }
-      // Set initial status panel state (ensure it's visible with initial log)
-      document.addEventListener("DOMContentLoaded", function() {
-        // Already in HTML, so nothing needed here
-        document.getElementById('status-panel').classList.add('visible');
+function onMouseDown(e) {
+  if (!(e.target.id == "img1" || e.target.id == "img2")) return;
+  draggedImg = e.target;
+  draggedImg.classList.add('dragging');
+  // get the computed style
+  let rect = draggedImg.getBoundingClientRect();
+  startLeft = rect.left;
+  startTop = rect.top;
+  offsetX = e.clientX - rect.left;
+  offsetY = e.clientY - rect.top;
+  // Set z-index high during drag
+  draggedImg.style.zIndex = 10000;
+  // set position to fixed for dragging (if not already)
+  draggedImg.style.position = "fixed";
+  // prevent browser dragging ghost
+  e.preventDefault();
+  document.addEventListener("mousemove", onMouseMove);
+  document.addEventListener("mouseup", onMouseUp);
+}
+
+function onMouseMove(e) {
+  if (!draggedImg) return;
+  let x = e.clientX - offsetX;
+  let y = e.clientY - offsetY;
+  // Allow moving anywhere (including outside viewport)
+  draggedImg.style.left = x + "px";
+  draggedImg.style.top = y + "px";
+  draggedImg.style.right = "auto";
+  draggedImg.style.bottom = "auto";
+}
+
+function onMouseUp(e) {
+  if (!draggedImg) return;
+  draggedImg.classList.remove('dragging');
+  // Keep it over other stuff, but restore original stacking if needed
+  draggedImg.style.zIndex = e.target.id === "img1" ? 2999 : 1999;
+  draggedImg = null;
+  document.removeEventListener("mousemove", onMouseMove);
+  document.removeEventListener("mouseup", onMouseUp);
+}
+
+// Attach
+document.getElementById("img1").addEventListener('mousedown', onMouseDown);
+document.getElementById("img2").addEventListener('mousedown', onMouseDown);
+})();
+// --------- DRAGGABLE IMAGES LOGIC END ------------
+
+
+// (The rest of your code is unchanged and can remain as is)
+function barcodeSVG(text, id) {
+  return `<svg id="${id}" class="barcode"></svg>`;
+}
+function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+const steps = ["Čakanie na výber súboru...", "Súbor sa načítava...", "Kontrolujem obsah súboru...", "Vyhľadávam hárok \"Data\"...", "Spracovávam Excel dáta...", "Formátujem stĺpec F...", "Filtrujem riadky podľa stĺpca AI...", "Pripravujem tabuľku na tlač...", "Vytváram čiarové kódy...", "Dokončujem prípravu...", "Hotovo! Spúšťam tlač..."];
+async function runSteps(stepFns) {
+  const statusPanel = document.getElementById('status-panel');
+  const statusLog = document.getElementById('status-log');
+  const statusProgress = document.getElementById('status-progress');
+  statusLog.innerHTML = "";
+  statusPanel.classList.add("visible");
+  let progress = 0;
+  for (let i = 0; i < steps.length; i++) {
+    statusLog.innerHTML = `<li>${steps[i]}</li>`;
+    statusLog.scrollTop = statusLog.scrollHeight;
+    progress = ((i + 1) / steps.length) * 100;
+    statusProgress.style.width = progress + "%";
+    if (typeof stepFns[i] === "function") await stepFns[i]();
+    await sleep(steps[i].indexOf("Hotovo") > -1 ? 100 : 200);
+  }
+  await sleep(600);
+  statusPanel.classList.remove("visible");
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById('status-panel').classList.add('visible');
+});
+
+document.getElementById('add-file').addEventListener('change', async function(e) {
+  document.getElementById("label").innerHTML = "<img src='https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png' />SÚBOR VYBRANÝ";
+  const file = e.target.files[0];
+  if (!file) return;
+  let resultDiv = document.getElementById('result');
+  let workbook, ws, data, rows, filteredRows, displayRows = [];
+  await runSteps([
+    null,
+    async () => {
+      const reader = new FileReader();
+      data = await new Promise((resolve, reject) => {
+        reader.onload = ev => resolve(new Uint8Array(ev.target.result));
+        reader.readAsArrayBuffer(file);
       });
-      document.getElementById('add-file').addEventListener('change', async function(e) {
-      document.getElementById("label").innerHTML = "<img src='https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png' />SÚBOR VYBRANÝ";
-        const file = e.target.files[0];
-        if (!file) return;
-        let resultDiv = document.getElementById('result');
-        let workbook, ws, data, rows, filteredRows, displayRows = [];
-        await runSteps([
-          null, // "Čakám na výber súboru…" (will display but nothing to do)
-          async () => { // "Načítavam súbor..."
-              const reader = new FileReader();
-              data = await new Promise((resolve, reject) => {
-                reader.onload = ev => resolve(new Uint8Array(ev.target.result));
-                reader.readAsArrayBuffer(file);
-              });
-            },
-            async () => { // "Kontrolujem obsah súboru..."
-                workbook = XLSX.read(data, {
-                  type: 'array'
-                });
-              },
-              async () => { // "Vyhľadávam hárok \"Data\"..."
-                  ws = workbook.Sheets["Data"];
-                  if (!ws) throw alert('Hárok "Data" nebol nádený v súbore...');
-                },
-                async () => { // "Spracovávam Excel dáta..."
-                    rows = XLSX.utils.sheet_to_json(ws, {
-                      header: 1
-                    });
-                    if (!rows.length) throw alert("Prázdne dáta...");
-                  },
-                  async () => { // "Formátujem stĺpec F..."
-                      const F = 5;
-                      for (let i = 1; i < rows.length; ++i) {
-                        let row = rows[i];
-                        let f = row[F];
-                        if (f !== undefined && f !== null) {
-                          let fStr = String(f).trim();
-                          if (/^\d{6}$/.test(fStr)) {
-                            fStr = '00' + fStr;
-                          }
-                          row[F] = fStr;
-                        }
-                      }
-                    },
-                    async () => { // "Filtrujem riadky podľa AI..."
-                        const colIndexes = {
-                          F: 5,
-                          H: 7,
-                          P: 15,
-                          R: 17,
-                          AI: 34
-                        };
-                        filteredRows = [rows[0]];
-                        for (let i = 1; i < rows.length; ++i) {
-                          let row = rows[i];
-                          if (!row[colIndexes.AI]) continue;
-                          if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
-                          if ((row[colIndexes.F] + '') === "88888888") continue;
-                          filteredRows.push(row);
-                        }
-                      },
-                      async () => { // "Pripravujem tabuľku na tlač..."
-                          const colIndexes = {
-                            F: 5,
-                            H: 7,
-                            P: 15,
-                            R: 17,
-                            AI: 34
-                          };
-                          displayRows = [];
-                          const headerRow = ['Barcode F', filteredRows[0][colIndexes.F], filteredRows[0][colIndexes.H], filteredRows[0][colIndexes.P], filteredRows[0][colIndexes.R], 'Barcode R'];
-                          displayRows.push(headerRow);
-                          for (let i = 1; i < filteredRows.length; ++i) {
-                            const row = filteredRows[i];
-                            displayRows.push([
-                              row[colIndexes.F],
-                              row[colIndexes.F],
-                              row[colIndexes.H],
-                              row[colIndexes.P],
-                              row[colIndexes.R],
-                              row[colIndexes.R]
-                            ]);
-                          }
-                        },
-                        async () => { // "Vytváram čiarové kódy..."
-                          let html = `<table>
+    },
+    async () => { workbook = XLSX.read(data, { type: 'array' }); },
+    async () => { ws = workbook.Sheets["Data"]; if (!ws) throw alert('Hárok "Data" nebol nádený v súbore...'); },
+    async () => { rows = XLSX.utils.sheet_to_json(ws, { header: 1 }); if (!rows.length) throw alert("Prázdne dáta..."); },
+    async () => {
+      const F = 5;
+      for (let i = 1; i < rows.length; ++i) {
+        let row = rows[i];
+        let f = row[F];
+        if (f !== undefined && f !== null) {
+          let fStr = String(f).trim();
+          if (/^\d{6}$/.test(fStr)) fStr = '00' + fStr;
+          row[F] = fStr;
+        }
+      }
+    },
+    async () => {
+      const colIndexes = { F: 5, H: 7, P: 15, R: 17, AI: 34 };
+      filteredRows = [rows[0]];
+      for (let i = 1; i < rows.length; ++i) {
+        let row = rows[i];
+        if (!row[colIndexes.AI]) continue;
+        if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
+        if ((row[colIndexes.F] + '') === "88888888") continue;
+        filteredRows.push(row);
+      }
+    },
+    async () => {
+      const colIndexes = { F: 5, H: 7, P: 15, R: 17, AI: 34 };
+      displayRows = [];
+      const headerRow = ['Barcode F', filteredRows[0][colIndexes.F], filteredRows[0][colIndexes.H], filteredRows[0][colIndexes.P], filteredRows[0][colIndexes.R], 'Barcode R'];
+      displayRows.push(headerRow);
+      for (let i = 1; i < filteredRows.length; ++i) {
+  const row = filteredRows[i];
+  displayRows.push([
+    row[colIndexes.F],
+    row[colIndexes.F],
+    row[colIndexes.H],
+    row[colIndexes.P],
+    row[colIndexes.R],
+    row[colIndexes.R]
+  ]);
+}
+},
+async () => {
+let html = `<table>
 <thead>
-  <tr style="background-color: #333;color:white;">`;
+<tr style="background-color: #333;color:white;">`;
 ['', 'Article', 'Location', 'Before', 'After', ''].forEach(h => html += `<th style="background-color: #333;color:white;">${h}</th>`);
 html += `</tr>
 </thead>
@@ -485,156 +541,151 @@ html += `<td>${barcodeSVG(displayRows[i][5], rBarcodeId)}</td>`;
 html += `</tr>`;
 }
 html += `</tbody></table>`;
-                            resultDiv.innerHTML = html;
-                            await sleep(30);
-                            for (let i = 1; i < displayRows.length; ++i) {
-                              const fVal = displayRows[i][0];
-                              const rVal = displayRows[i][5];
-                              if (fVal !== undefined && fVal !== "") {
-                                JsBarcode(`#f-barcode-${i}`, String(fVal), {
-                                  format: "CODE128",
-                                  lineColor: "#222",
-                                  height: 36,
-                                  width: 1.8,
-                                  displayValue: false
-                                });
-                              }
-                              if (rVal !== undefined && rVal !== "") {
-                                JsBarcode(`#r-barcode-${i}`, String(rVal), {
-                                  format: "CODE128",
-                                  lineColor: "#222",
-                                  height: 36,
-                                  width: 1.8,
-                                  displayValue: false
-                                });
-                              }
-                            }
-                          },
-                          async () => { // "Dokončujem prípravu..."
-                              await sleep(60);
-                            },
-                            async () => { // "Hotovo! Spúšťam tlač..."
-                              await sleep(230);
-                            }
-        ]);
-        // Print and reload on finish
-        window.print();
-        document.getElementById("reloader").style.display = "inline";
-        window.onafterprint = function() {
-          // Optional: Reload to reset the UI (uncomment if desired)
-          // window.location.reload();
-        };
-      });
-      window.addEventListener('load', function() {
-        setTimeout(() => {
-            document.getElementById("appka").style.opacity = "1";
-            document.getElementById("app-content").style.opacity = "1";
-            document.getElementById("img1").style.opacity = "1";
-            document.getElementById("img2").style.opacity = "1";
-            document.getElementById("img3").style.opacity = "1";
-            document.getElementById("status-panel").style.opacity = "1";
-          }, 1000),
-          setTimeout(() => {
-            document.getElementById("app-content").style.top = "0";
-            document.getElementById("img1").style.bottom = "-40px";
-            document.getElementById("img2").style.bottom = "-20px";
-            document.getElementById("img3").style.bottom = "150px";
-          }, 1000)
-      });
-      function reloader() {
-        window.location.reload();
-      }
-      document.getElementById('add-file-export').addEventListener('change', async function(e) {
-  document.getElementById("label-export").innerHTML = "<img src='https://img.icons8.com/ios11/512/222222/export-csv.png' />SÚBOR VYBRANÝ";
-  const file = e.target.files[0];
-  if (!file) return;
-  let workbook, ws, data, rows, filteredRows, displayRows = [];
-  await runSteps([
-      null,
-      async () => {
-        const reader = new FileReader();
-        data = await new Promise((resolve, reject) => {
-          reader.onload = ev => resolve(new Uint8Array(ev.target.result));
-          reader.readAsArrayBuffer(file);
-        });
-      },
-      async () => { workBook = XLSX.read(data, { type: 'array'}); },
-      async () => { ws = workBook.Sheets["Data"]; if (!ws) throw alert('Sheet "Data" not found!'); },
-      async () => { rows = XLSX.utils.sheet_to_json(ws, {header:1}); if (!rows.length) throw alert("Empty file"); },
-      async () => {
-        const F = 5;
-        for (let i = 1; i < rows.length; ++i) {
-          let row = rows[i];
-          let f = row[F];
-          if (f !== undefined && f !== null) {
-            let fStr = String(f).trim();
-            if (/^\d{6}$/.test(fStr)) fStr = '00' + fStr;
-            row[F] = fStr;
-          }
-        }
-      },
-      async () => {
-        const colIndexes = { F:5, H:7, P:15, R:17, AI:34 };
-        filteredRows = [rows[0]];
-        for (let i = 1; i < rows.length; ++i) {
-          let row = rows[i];
-          if (!row[colIndexes.AI]) continue;
-          if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
-          if ((row[colIndexes.F] + '') === "88888888") continue;
-          filteredRows.push(row);
-        }
-      },
-      async () => {
-        const colIndexes = {F:5,H:7,P:15,R:17,AI:34};
-        displayRows = [];
-        for (let i=1; i<filteredRows.length; ++i) {
-          const row = filteredRows[i];
-          displayRows.push({
-            barcodeF: row[colIndexes.F],
-            article: row[colIndexes.F],
-            location: row[colIndexes.H],
-            before: row[colIndexes.P],
-            after: row[colIndexes.R],
-            barcodeR: row[colIndexes.R]
-          });
-        }
-      }
-  ]);
-  let json = JSON.stringify(displayRows);
+resultDiv.innerHTML = html;
+await sleep(30);
+for (let i = 1; i < displayRows.length; ++i) {
+  const fVal = displayRows[i][0];
+  const rVal = displayRows[i][5];
+  if (fVal !== undefined && fVal !== "") {
+    JsBarcode(`#f-barcode-${i}`, String(fVal), {
+      format: "CODE128",
+      lineColor: "#222",
+      height: 36,
+      width: 1.8,
+      displayValue: false
+    });
+  }
+  if (rVal !== undefined && rVal !== "") {
+    JsBarcode(`#r-barcode-${i}`, String(rVal), {
+      format: "CODE128",
+      lineColor: "#222",
+      height: 36,
+      width: 1.8,
+      displayValue: false
+    });
+  }
+}
+},
+async () => { await sleep(60); },
+async () => { await sleep(230); }
+]);
+// Print and reload on finish
+window.print();
+document.getElementById("reloader").style.display = "inline";
+window.onafterprint = function() {
+// Optional: Reload to reset the UI if desired
+};
+});
+window.addEventListener('load', function() {
+setTimeout(() => {
+document.getElementById("appka").style.opacity = "1";
+document.getElementById("app-content").style.opacity = "1";
+document.getElementById("img1").style.opacity = "1";
+document.getElementById("img2").style.opacity = "1";
+document.getElementById("img3").style.opacity = "1";
+document.getElementById("status-panel").style.opacity = "1";
+}, 1000),
+setTimeout(() => {
+document.getElementById("app-content").style.top = "0";
+document.getElementById("img1").style.bottom = "-40px";
+document.getElementById("img2").style.bottom = "-20px";
+document.getElementById("img3").style.bottom = "150px";
+}, 1000)
+});
+function reloader() {
+window.location.reload();
+}
+document.getElementById('add-file-export').addEventListener('change', async function(e) {
+document.getElementById("label-export").innerHTML = "<img src='https://img.icons8.com/ios11/512/222222/export-csv.png' />SÚBOR VYBRANÝ";
+const file = e.target.files[0];
+if (!file) return;
+let workbook, ws, data, rows, filteredRows, displayRows = [];
+await runSteps([
+null,
+async () => {
+const reader = new FileReader();
+data = await new Promise((resolve, reject) => {
+  reader.onload = ev => resolve(new Uint8Array(ev.target.result));
+  reader.readAsArrayBuffer(file);
+});
+},
+async () => { workBook = XLSX.read(data, { type: 'array'}); },
+async () => { ws = workBook.Sheets["Data"]; if (!ws) throw alert('Sheet "Data" not found!'); },
+async () => { rows = XLSX.utils.sheet_to_json(ws, {header:1}); if (!rows.length) throw alert("Empty file"); },
+async () => {
+const F = 5;
+for (let i = 1; i < rows.length; ++i) {
+  let row = rows[i];
+  let f = row[F];
+  if (f !== undefined && f !== null) {
+    let fStr = String(f).trim();
+    if (/^\d{6}$/.test(fStr)) fStr = '00' + fStr;
+    row[F] = fStr;
+  }
+}
+},
+async () => {
+const colIndexes = { F:5, H:7, P:15, R:17, AI:34 };
+filteredRows = [rows[0]];
+for (let i = 1; i < rows.length; ++i) {
+  let row = rows[i];
+  if (!row[colIndexes.AI]) continue;
+  if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
+  if ((row[colIndexes.F] + '') === "88888888") continue;
+  filteredRows.push(row);
+}
+},
+async () => {
+const colIndexes = {F:5,H:7,P:15,R:17,AI:34};
+displayRows = [];
+for (let i=1; i<filteredRows.length; ++i) {
+  const row = filteredRows[i];
+  displayRows.push({
+    barcodeF: row[colIndexes.F],
+    article: row[colIndexes.F],
+    location: row[colIndexes.H],
+    before: row[colIndexes.P],
+    after: row[colIndexes.R],
+    barcodeR: row[colIndexes.R]
+  });
+}
+}
+]);
+let json = JSON.stringify(displayRows);
 
-   document.getElementById("export-result").style.display = "block";
-   document.getElementById("export-data-text").value = json;
+document.getElementById("export-result").style.display = "block";
+document.getElementById("export-data-text").value = json;
 
-   let statusDiv = document.getElementById("jsonbin-result-status");
-   if (!statusDiv) {
-     statusDiv = document.createElement('div');
-     statusDiv.id = "jsonbin-result-status";
-     statusDiv.style.marginBottom = "12px";
-     document.getElementById("export-result").prepend(statusDiv);
-   }
-   statusDiv.innerHTML = "<span style='font-size:12px;'>⏳</span> Prebieha kontrola";
+let statusDiv = document.getElementById("jsonbin-result-status");
+if (!statusDiv) {
+statusDiv = document.createElement('div');
+statusDiv.id = "jsonbin-result-status";
+statusDiv.style.marginBottom = "12px";
+document.getElementById("export-result").prepend(statusDiv);
+}
+statusDiv.innerHTML = "<span style='font-size:12px;'>⏳</span> Prebieha kontrola";
 
-   // --- Here is the replacement logic ----
-   const BIN_ID = "6852ad108960c979a5ac2647";
-   const JSONBIN_API_KEY = "$2a$10$Y/1xhOmgLLihMYXp8ZBf9.f82DwDRPMIcj7gVCQsqrtESTXMFJBM."; // your X-Access-Key NOT master key
+// --- Here is the replacement logic ----
+const BIN_ID = "6852ad108960c979a5ac2647";
+const JSONBIN_API_KEY = "$2a$10$Y/1xhOmgLLihMYXp8ZBf9.f82DwDRPMIcj7gVCQsqrtESTXMFJBM."; // your X-Access-Key NOT master key
 
-   try {
-     const res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
-       method: 'PUT',
-       headers: {
-         'Content-Type': 'application/json',
-         'X-Access-Key': JSONBIN_API_KEY
-       },
-       body: json
-     });
-     if (!res.ok) throw new Error("Upload failed. HTTP " + res.status);
-     const response = await res.json();
-     statusDiv.innerHTML = "✅ Export bol úspešný! Bin ID: <code>6852ad108960c979a5ac2647</code>";
-   } catch(err) {
-     statusDiv.innerHTML = "❌ Upload failed! " + err.message;
-   }
- });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-  </body>
+try {
+const res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
+method: 'PUT',
+headers: {
+  'Content-Type': 'application/json',
+  'X-Access-Key': JSONBIN_API_KEY
+},
+body: json
+});
+if (!res.ok) throw new Error("Upload failed. HTTP " + res.status);
+const response = await res.json();
+statusDiv.innerHTML = "✅ Export bol úspešný! Bin ID: <code>6852ad108960c979a5ac2647</code>";
+} catch(err) {
+statusDiv.innerHTML = "❌ Upload failed! " + err.message;
+}
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+</body>
 </html>
