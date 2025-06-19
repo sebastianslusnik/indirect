@@ -536,7 +536,7 @@ document.getElementById('add-file').addEventListener('change', async function(e)
         let row = rows[i];
         if (!row[colIndexes.AI]) continue;
         if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
-        if ((row[colIndexes.F] + '') === "88888888") continue;
+        if ((row[colIndexes.H] + '') === "888888") continue;
         filteredRows.push(row);
       }
     },
@@ -668,7 +668,7 @@ for (let i = 1; i < rows.length; ++i) {
   let row = rows[i];
   if (!row[colIndexes.AI]) continue;
   if (((row[colIndexes.AI] + '').toLowerCase().indexOf('indir') === -1)) continue;
-  if ((row[colIndexes.F] + '') === "88888888") continue;
+  if ((row[colIndexes.H] + '') === "888888") continue;
   filteredRows.push(row);
 }
 },
