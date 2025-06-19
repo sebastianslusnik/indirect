@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -252,6 +253,48 @@ setTimeout(() => {
   window.scrollTo(0, 1);
   console.log("scrolled");
 }, 1000);
+// --- SWIPE SUPPORT BEGIN ---
+
+let touchStartX = null;
+let touchEndX = null;
+const SWIPE_THRESHOLD = 50; // min px moved for swipe
+
+function handleTouchStart(evt) {
+  if (evt.touches && evt.touches.length === 1) {
+    touchStartX = evt.touches[0].clientX;
+  }
+}
+
+function handleTouchEnd(evt) {
+  if (touchStartX === null) return;
+  // Some browsers/android may fire this with evt.changedTouches, not evt.touches:
+  let endX = (evt.changedTouches && evt.changedTouches.length)
+      ? evt.changedTouches[0].clientX
+      : (evt.touches && evt.touches.length ? evt.touches[0].clientX : null);
+
+  if (endX !== null) {
+    touchEndX = endX;
+    const dx = touchEndX - touchStartX;
+    if (Math.abs(dx) > SWIPE_THRESHOLD) {
+      if (dx < 0) {
+        // Swiped LEFT
+        document.getElementById('next-page').onclick();
+      } else {
+        // Swiped RIGHT
+        document.getElementById('prev-page').onclick();
+      }
+    }
+  }
+  touchStartX = null;
+  touchEndX = null;
+}
+
+// Attach swipe listeners to page-content area
+const swipeArea = document.getElementById('page-content');
+swipeArea.addEventListener('touchstart', handleTouchStart, {passive:true});
+swipeArea.addEventListener('touchend', handleTouchEnd, {passive:true});
+
+// --- SWIPE SUPPORT END ---
 </script>
 </body>
 </html>
