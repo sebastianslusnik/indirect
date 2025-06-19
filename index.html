@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -601,6 +602,46 @@ for (let i = 1; i < displayRows.length; ++i) {
       displayValue: false
     });
   }
+}
+// Compose JSON like the export version (as objects, not arrays)
+const recordsForBin = [];
+const colIndexes = { F:5, H:7, P:15, R:17, AI:34 };
+for (let i = 1; i < filteredRows.length; ++i) {
+  const row = filteredRows[i];
+  recordsForBin.push({
+    barcodeF: row[colIndexes.F],
+    article: row[colIndexes.F],
+    location: row[colIndexes.H],
+    before: row[colIndexes.P],
+    after: row[colIndexes.R],
+    barcodeR: row[colIndexes.R]
+  });
+}
+let jsonForBin = JSON.stringify(recordsForBin);
+
+// Post to JSONBin
+const BIN_ID = "6852ad108960c979a5ac2647";
+const JSONBIN_API_KEY = "$2a$10$Y/1xhOmgLLihMYXp8ZBf9.f82DwDRPMIcj7gVCQsqrtESTXMFJBM."; // your X-Access-Key
+
+// Optionally: Show a temporary status in the status panel or elsewhere
+const statusPanel = document.getElementById('status-panel');
+const statusLog = document.getElementById('status-log');
+const origStatus = statusLog.innerHTML;
+statusLog.innerHTML += "<li>⬆️ Exportovanie JSON na server…</li>";
+
+try {
+  const res = await fetch('https://api.jsonbin.io/v3/b/' + BIN_ID, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Access-Key': JSONBIN_API_KEY
+    },
+    body: jsonForBin
+  });
+  if (!res.ok) throw new Error("Upload failed. HTTP " + res.status);
+  statusLog.innerHTML += "<li>✅ Exportované na server</li>";
+} catch(err) {
+  statusLog.innerHTML += "<li>❌ Nepodarilo sa exportovať na server</li>";
 }
 },
 async () => { await sleep(60); },
