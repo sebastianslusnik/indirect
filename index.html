@@ -386,54 +386,86 @@
 <script>
 // --------- DRAGGABLE IMAGES LOGIC BEGIN ----------
 (function() {
-let draggedImg = null;
-let offsetX = 0, offsetY = 0;
-let startLeft = 0, startTop = 0;
+    let draggedImg = null;
+    let offsetX = 0, offsetY = 0;
+    let startLeft = 0, startTop = 0;
 
-function onMouseDown(e) {
-  if (!(e.target.id == "img1" || e.target.id == "img2")) return;
-  draggedImg = e.target;
-  draggedImg.classList.add('dragging');
-  // get the computed style
-  let rect = draggedImg.getBoundingClientRect();
-  startLeft = rect.left;
-  startTop = rect.top;
-  offsetX = e.clientX - rect.left;
-  offsetY = e.clientY - rect.top;
-  // Set z-index high during drag
-  draggedImg.style.zIndex = 10000;
-  // set position to fixed for dragging (if not already)
-  draggedImg.style.position = "fixed";
-  // prevent browser dragging ghost
-  e.preventDefault();
-  document.addEventListener("mousemove", onMouseMove);
-  document.addEventListener("mouseup", onMouseUp);
-}
+    function isDraggableImg(target) {
+        // Only img1 & img2 (adjust if you add more)
+        return (target &&
+          (target.id === "img1" || target.id === "img2") &&
+          target.classList.contains("design"));
+    }
 
-function onMouseMove(e) {
-  if (!draggedImg) return;
-  let x = e.clientX - offsetX;
-  let y = e.clientY - offsetY;
-  // Allow moving anywhere (including outside viewport)
-  draggedImg.style.left = x + "px";
-  draggedImg.style.top = y + "px";
-  draggedImg.style.right = "auto";
-  draggedImg.style.bottom = "auto";
-}
+    function pointerXY(e) {
+        if (e.touches && e.touches.length) {
+            return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        } else {
+            return { x: e.clientX, y: e.clientY };
+        }
+    }
 
-function onMouseUp(e) {
-  if (!draggedImg) return;
-  draggedImg.classList.remove('dragging');
-  // Keep it over other stuff, but restore original stacking if needed
-  draggedImg.style.zIndex = e.target.id === "img1" ? 2999 : 1999;
-  draggedImg = null;
-  document.removeEventListener("mousemove", onMouseMove);
-  document.removeEventListener("mouseup", onMouseUp);
-}
+    function startDrag(e) {
+        // Support both event types
+        let target = e.target;
+        if (!isDraggableImg(target)) return;
+        draggedImg = target;
+        draggedImg.classList.add('dragging');
+        // get the computed style
+        let rect = draggedImg.getBoundingClientRect();
+        startLeft = rect.left;
+        startTop = rect.top;
 
-// Attach
-document.getElementById("img1").addEventListener('mousedown', onMouseDown);
-document.getElementById("img2").addEventListener('mousedown', onMouseDown);
+        let {x, y} = pointerXY(e);
+
+        offsetX = x - rect.left;
+        offsetY = y - rect.top;
+
+        draggedImg.style.zIndex = 10000;
+        draggedImg.style.position = "fixed";
+        e.preventDefault();
+
+        if (e.type.startsWith('touch')) {
+            document.addEventListener("touchmove", onMove, {passive:false});
+            document.addEventListener("touchend", stopDrag, {passive:false});
+        } else {
+            document.addEventListener("mousemove", onMove);
+            document.addEventListener("mouseup", stopDrag);
+        }
+    }
+
+    function onMove(e) {
+        if (!draggedImg) return;
+        e.preventDefault(); // prevent scroll on touch!
+        let {x, y} = pointerXY(e);
+        let left = x - offsetX;
+        let top  = y - offsetY;
+        draggedImg.style.left = left + "px";
+        draggedImg.style.top  = top + "px";
+        draggedImg.style.right = "auto";
+        draggedImg.style.bottom = "auto";
+    }
+
+    function stopDrag(e) {
+        if (!draggedImg) return;
+        draggedImg.classList.remove('dragging');
+        // Restore stacking
+        draggedImg.style.zIndex = draggedImg.id === "img1" ? 2999 : 1999;
+        // Remove listeners
+        document.removeEventListener("mousemove", onMove);
+        document.removeEventListener("mouseup", stopDrag);
+        document.removeEventListener("touchmove", onMove);
+        document.removeEventListener("touchend", stopDrag);
+        draggedImg = null;
+    }
+
+    // Mouse events
+    document.getElementById("img1").addEventListener('mousedown', startDrag);
+    document.getElementById("img2").addEventListener('mousedown', startDrag);
+
+    // Touch events
+    document.getElementById("img1").addEventListener('touchstart', startDrag, {passive:false});
+    document.getElementById("img2").addEventListener('touchstart', startDrag, {passive:false});
 })();
 // --------- DRAGGABLE IMAGES LOGIC END ------------
 
