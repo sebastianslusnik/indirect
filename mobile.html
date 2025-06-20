@@ -124,6 +124,8 @@
       margin-right: 16px;
       float: right;
       font-family: "Inter", Arial, sans-serif;
+      opacity: 0;
+      transition: .2s;
     }
   </style>
 </head>
@@ -189,6 +191,7 @@ async function loadLastExportMobile() {
       if (record.day) document.getElementById('day').innerText = record.day;
       if (record.date) document.getElementById('date').innerText = record.date;
       if (record.time) document.getElementById('time').innerText = record.time;
+        document.getElementById("latest-status").style.opacity = "1";
     }
   } catch(err) {
     // Optionally show a warning or ignore silently
