@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -348,8 +349,19 @@
       opacity: 0;
       transition: 1s;
     }
+
+    #last-export { position: fixed; top: 2vw; right: 2vw; font-weight: 400; color: #333; font-size: 13px; padding: 22px 28px 18px 28px; font-family: "Inter";}
+    #last-export span span { font-size: 14px; font-weight: 700;}
   </style>
   <body id="appka">
+    <div id="last-export" align="center">
+      &copy; 2025 InDirect Wizard | v2.1.0<br>
+      <span>Posledná aktualizácia v
+        <span id="day">Pondelok</span>
+        <span id="date">01.01.2025</span>
+        <span id="time">00:00</span>
+      </span>
+    </div>
     <img id="img1" class="design right" src="01.png" />
     <img id="img2" class="design left" src="02.png" />
     <img id="img3" class="design middle" src="max.JPG" />
@@ -385,6 +397,55 @@
 </div>
 </div>
 <script>
+// --- JSONBIN day/date/time integration CONFIG ---
+const LAST_EXPORT_BIN_ID = "6852acb88a456b7966b063f8";
+const JSONBIN_API_KEY = "$2a$10$Y/1xhOmgLLihMYXp8ZBf9.f82DwDRPMIcj7gVCQsqrtESTXMFJBM.";
+
+// Fetch the last export values and fill the spans
+async function loadLastExport() {
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + LAST_EXPORT_BIN_ID + '/latest', {
+      headers: { 'X-Access-Key': JSONBIN_API_KEY }
+    });
+    if (!res.ok) throw new Error("Failed to fetch last export");
+    const data = await res.json();
+    if (Array.isArray(data.record) && data.record.length > 0) {
+      const record = data.record[0];
+      if(record.day) document.getElementById('day').innerText = record.day;
+      if(record.date) document.getElementById('date').innerText = record.date;
+      if(record.time) document.getElementById('time').innerText = record.time;
+    }
+  } catch(err) {
+    // Optionally handle errors
+  }
+}
+
+function getCurrentExportDateObj() {
+  const dayNames = ["Nedeľa", "Pondelok", "Utorok", "Streda", "Štvrtok", "Piatok", "Sobota"];
+  const now = new Date();
+  const day = dayNames[now.getDay()];
+  const pad = (n) => String(n).padStart(2, '0');
+  const date = `${pad(now.getDate())}.${pad(now.getMonth()+1)}.${now.getFullYear()}`;
+  const time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  return { day, date, time };
+}
+
+async function updateLastExportBin() {
+  const payload = [getCurrentExportDateObj()];
+  try {
+    await fetch('https://api.jsonbin.io/v3/b/' + LAST_EXPORT_BIN_ID, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Access-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+  } catch(err) {/* silent fail */}
+}
+
+
+//--- Rest of your app code ---
 // --------- DRAGGABLE IMAGES LOGIC BEGIN ----------
 (function() {
     let draggedImg = null;
@@ -498,12 +559,15 @@ async function runSteps(stepFns) {
 
 document.addEventListener("DOMContentLoaded", function() {
   document.getElementById('status-panel').classList.add('visible');
+  loadLastExport(); // <-- Load date info on startup
 });
 
 document.getElementById('add-file').addEventListener('change', async function(e) {
   document.getElementById("label").innerHTML = "<img src='https://img.icons8.com/ios11/512/FFFFFF/folder-invoices.png' />SÚBOR VYBRANÝ";
   const file = e.target.files[0];
   if (!file) return;
+  await updateLastExportBin(); // <--- Save to JSONbin
+  loadLastExport(); // <--- Refresh header after saving
   let resultDiv = document.getElementById('result');
   let workbook, ws, data, rows, filteredRows, displayRows = [];
   await runSteps([
@@ -759,6 +823,9 @@ body: json
 if (!res.ok) throw new Error("Upload failed. HTTP " + res.status);
 const response = await res.json();
 statusDiv.innerHTML = "✅ Export bol úspešný! Bin ID: <code>6852ad108960c979a5ac2647</code>";
+
+await updateLastExportBin(); // <--- Save to JSONbin
+loadLastExport(); // <--- Refresh header after saving
 } catch(err) {
 statusDiv.innerHTML = "❌ Upload failed! " + err.message;
 }
