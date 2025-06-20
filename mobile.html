@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,7 +71,7 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       padding: 50px 5vw 14px 5vw;
       font-size: 16px;
-      min-height: 56vh;
+      min-height: 50vh;
       font-family: "Inter", Arial, sans-serif;
       opacity: 1;
       transition: opacity 0.35s; /* FADE ANIMATION */
@@ -88,7 +89,7 @@
     .field-label { color: #888;font-size:0.99em;}
     .field { display: block; font-size: 1.15em; margin-bottom: 9px;}
     svg.barcode { margin: 0 auto 0.2em auto; display: block; width: 100%; height: 120px; }
-    #paginator { margin-top: 45px; font-size: 2em; text-align: center;}
+    #paginator { margin-top: 40px; font-size: 2em; text-align: center;}
     #paginator > span {
       display: inline-block;
       background: #eee;
@@ -117,6 +118,13 @@
       float: right;
       font-family: "Inter", Arial, sans-serif;
     }
+    #latest-status {
+      color: #333;
+      font-size: 3vw;
+      margin-right: 16px;
+      float: right;
+      font-family: "Inter", Arial, sans-serif;
+    }
   </style>
 </head>
 <body>
@@ -125,6 +133,7 @@
     <span style="font-size:10vw;position:relative;left:-60px;top:18px;font-family: 'Rouge Script', cursive;color:orange;font-weight: 500">Wizard</span>
     <button id="reload-jsonbin" onclick="loadFromJsonBin()">&#8635;</button>
     <div id="jsonbin-status"></div>
+    <div id="latest-status">Aktualizované v <strong><span id="day">Pondelok</span>&nbsp;<span id="date">01.01.2025</span>&nbsp;<span id="time">00:00</span></strong></div>
     <input id="import-data" type="file" accept=".json,.txt"  style="display: none;"/>
     <textarea id="import-text" rows="5" placeholder="(Optional) Paste or import JSON data here..." style="display: none;"></textarea>
     <button onclick="loadMobileData()" style="display: none;">Load &gt;</button>
@@ -163,6 +172,28 @@
     </div>
   </div>
   <script>
+  // JSONbin config for last export info
+const LAST_EXPORT_BIN_ID = "6852acb88a456b7966b063f8";
+const LAST_EXPORT_API_KEY = "$2a$10$Y/1xhOmgLLihMYXp8ZBf9.f82DwDRPMIcj7gVCQsqrtESTXMFJBM.";
+
+// Fetch the last export day/date/time and update the spans
+async function loadLastExportMobile() {
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/' + LAST_EXPORT_BIN_ID + '/latest', {
+      headers: { 'X-Access-Key': LAST_EXPORT_API_KEY }
+    });
+    if (!res.ok) throw new Error("Failed to fetch last export");
+    const data = await res.json();
+    if (Array.isArray(data.record) && data.record.length > 0) {
+      const record = data.record[0];
+      if (record.day) document.getElementById('day').innerText = record.day;
+      if (record.date) document.getElementById('date').innerText = record.date;
+      if (record.time) document.getElementById('time').innerText = record.time;
+    }
+  } catch(err) {
+    // Optionally show a warning or ignore silently
+  }
+}
     // Hardcoded JSONBin ID
     const MY_SHARED_BIN_ID = "6852ad108960c979a5ac2647";
     let mobileRows = [];
@@ -266,7 +297,7 @@
         if (!Array.isArray(mobileRows) || !mobileRows.length) throw 1;
         curPage = 0;
         showMobilePage(false); // No animation on initial load
-        status.innerHTML = "Loaded <strong>" + mobileRows.length + " records</strong> from server.";
+        status.innerHTML = "Úspešne načítaných <strong>" + mobileRows.length + " záznamov</strong>";
       } catch (e) {
         status.textContent = "Failed to load from server! " + (e.message ? "(" + e.message + ")" : "");
         document.getElementById('page-content').style.display = 'none';
@@ -322,7 +353,10 @@
     swipeArea.addEventListener('touchstart', handleTouchStart, {passive:true});
     swipeArea.addEventListener('touchend', handleTouchEnd, {passive:true});
     // --- SWIPE SUPPORT END ---
-
+    window.addEventListener('DOMContentLoaded', function() {
+      loadFromJsonBin();
+      loadLastExportMobile(); // <= add this line
+    });
   </script>
 </body>
 </html>
