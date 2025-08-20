@@ -363,10 +363,10 @@
   width: 300px;
   height: 60px;
 }
-#1,
-#2,
-#3,
-#4 {
+#first1,
+#second2,
+#third3,
+#fourth4 {
   display: inline-block;
   width: 30px;
   height: 30px;
@@ -382,10 +382,10 @@
   cursor: pointer;
 }
 
-#1:focus,
-#2:focus,
-#3:focus,
-#4:focus {
+#first1:focus,
+#second2:focus,
+#third3:focus,
+#fourth4:focus {
   outline: 2px solid #444;
 }
   </style>
@@ -445,10 +445,10 @@
 <script>
   window.onload = function () {
   const inputs = [
-    document.getElementById("1"),
-    document.getElementById("2"),
-    document.getElementById("3"),
-    document.getElementById("4")
+    document.getElementById("first1"),
+    document.getElementById("second2"),
+    document.getElementById("third3"),
+    document.getElementById("fourth4")
   ];
 
   inputs[0].focus();
@@ -904,5 +904,6 @@ statusDiv.innerHTML = "❌ Upload failed! " + err.message;
 <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 </body>
 </html>
+
 
 
