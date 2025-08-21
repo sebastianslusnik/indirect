@@ -499,10 +499,10 @@
           document.getElementById("pass").style.display = "none";
         }, 2000);
         setTimeout(() => {
-          document.getElementById("hiddencontent").style.opacity = "1";
+          document.getElementById("hiddencontent").style.display = "block";
         }, 3000);
         setTimeout(() => {
-          document.getElementById("hiddencontent").style.display = "block";
+          document.getElementById("hiddencontent").style.opacity = "1";
         }, 4000);
       }
     });
@@ -946,6 +946,7 @@ statusDiv.innerHTML = "❌ Upload failed! " + err.message;
 <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
 </body>
 </html>
+
 
 
 
